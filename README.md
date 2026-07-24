@@ -1,11 +1,11 @@
 # Docs Portal
 
 Minimal local web app to browse and PDF-export project documentation
-across all your projects in `~/Code/`.
+across all your projects in `your projects directory (set DOCS_ROOT)`.
 
 ## What it does
 
-- Walks `~/Code/` (configurable) and lists every project that has docs
+- Walks `your projects directory (set DOCS_ROOT)` (configurable) and lists every project that has docs
 - For each project, shows a tree of all `.md` and `.html` files
 - Click a doc → renders as HTML in your browser
 - "Download PDF" button on every page
@@ -15,7 +15,7 @@ across all your projects in `~/Code/`.
 ## Run
 
 ```bash
-cd ~/Code/docs-portal
+cd bulletproof-docs-portal
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/uvicorn app:app --host 127.0.0.1 --port 8090
@@ -42,3 +42,7 @@ On Debian/Ubuntu:
 ```bash
 sudo apt-get install libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libgdk-pixbuf-2.0-0
 ```
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
