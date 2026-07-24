@@ -106,11 +106,9 @@ The app is configured entirely through environment variables:
 |----------|---------|--------|
 | `DOCS_ROOT` | `~/Code` | The directory whose immediate subdirectories are treated as projects. Resolved to an absolute path at startup. |
 
-> **Note on `DOCS_INCLUDE_GLOBS`:** the module docstring in `app.py` mentions a
-> `DOCS_INCLUDE_GLOBS` variable, but the current code does **not** read it — the include
-> patterns are a fixed list (`INCLUDE_PATTERNS`) defined in the source. Treat the glob set
-> as fixed unless you edit `app.py`. This is documented here rather than "fixed" because
-> the intended behavior is a source decision, not a doc bug.
+> **Note on include patterns:** the include patterns are a fixed list
+> (`INCLUDE_PATTERNS`) defined in the source. Treat the glob set as fixed unless
+> you edit `app.py`.
 
 ---
 

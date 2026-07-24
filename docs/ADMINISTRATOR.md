@@ -17,10 +17,6 @@ Everything else — the include glob patterns (`INCLUDE_PATTERNS`), the excluded
 set (`EXCLUDE_DIRS`), the on-screen and print CSS — is defined in `app.py`. There is no
 config file. To change discovery behavior you edit the source.
 
-> The `app.py` docstring references a `DOCS_INCLUDE_GLOBS` variable. The running code does
-> **not** read it; the include set is the hard-coded `INCLUDE_PATTERNS` list. Do not rely
-> on `DOCS_INCLUDE_GLOBS` having any effect.
-
 ---
 
 ## Running as a managed process
@@ -87,7 +83,7 @@ is reachable by anyone else:
 
 WeasyPrint fetches resources referenced by the HTML it renders. Historically this enabled
 SSRF; **`weasyprint` is pinned to 68.0+**, which includes the fix for
-[CVE-2025-68616](https://github.com/advisories/) (SSRF protection bypass via HTTP
+[CVE-2025-68616](https://nvd.nist.gov/vuln/detail/CVE-2025-68616) (SSRF protection bypass via HTTP
 redirect). Keep the pin at 68.0 or newer. If you render docs from untrusted sources, be
 aware that PDF generation dereferences their `img`/`link` URLs; render only docs you trust,
 or run the process without outbound network access.

@@ -9,8 +9,7 @@ Run:
     uvicorn app:app --host 127.0.0.1 --port 8090
 
 Configure via env:
-    DOCS_ROOT          — directory to scan (default: ~/Code)
-    DOCS_INCLUDE_GLOBS — comma-separated globs (default: *.md,docs/**/*.md,docs/**/*.html)
+    DOCS_ROOT — directory to scan (default: ~/Code)
 """
 
 from __future__ import annotations

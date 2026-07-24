@@ -1,13 +1,13 @@
 # bulletproof-docs-portal
 
 Minimal local web app to browse and PDF-export project documentation
-across all your projects in `your projects directory (set DOCS_ROOT)`.
+across all projects under a configurable root directory (`DOCS_ROOT`).
 
 ![bulletproof-docs-portal — overview](docs/media/infographic.png)
 
 ## What it does
 
-- Walks `your projects directory (set DOCS_ROOT)` (configurable) and lists every project that has docs
+- Walks the directory set by `DOCS_ROOT` and lists every project that has docs
 - For each project, shows a tree of all `.md` and `.html` files
 - Click a doc → renders as HTML in your browser
 - "Download PDF" button on every page
