@@ -3,6 +3,8 @@
 Minimal local web app to browse and PDF-export project documentation
 across all your projects in `your projects directory (set DOCS_ROOT)`.
 
+![bulletproof-docs-portal — overview](docs/media/infographic.png)
+
 ## What it does
 
 - Walks `your projects directory (set DOCS_ROOT)` (configurable) and lists every project that has docs
@@ -42,6 +44,19 @@ On Debian/Ubuntu:
 ```bash
 sudo apt-get install libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libgdk-pixbuf-2.0-0
 ```
+
+## Documentation
+
+- [Overview](docs/OVERVIEW.md) — what it is and how it works
+- [Install](docs/INSTALL.md) · [How to use](docs/HOW-TO-USE.md) · [Administrator guide](docs/ADMINISTRATOR.md)
+- [SBOM](docs/SBOM.md) · [Security scan report](docs/scan/scan-report.md) — score 956/1000, 0 critical / 0 high
+
+## Media
+
+A NotebookLM-generated overview set lives in [`media/`](media/): a briefing document
+([`media/system-overview.md`](media/system-overview.md)) and an explainer video
+([`media/system-overview.mp4`](media/system-overview.mp4)). The overview infographic is
+[`docs/media/infographic.png`](docs/media/infographic.png).
 
 ## License
 
