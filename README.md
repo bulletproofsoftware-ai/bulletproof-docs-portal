@@ -1,4 +1,4 @@
-# Docs Portal
+# bulletproof-docs-portal
 
 Minimal local web app to browse and PDF-export project documentation
 across all your projects in `your projects directory (set DOCS_ROOT)`.
