@@ -54,8 +54,10 @@ sudo apt-get install libcairo2 libpango-1.0-0 libpangoft2-1.0-0 libgdk-pixbuf-2.
 ## Media
 
 A NotebookLM-generated overview set lives in [`media/`](media/): a briefing document
-([`media/system-overview.md`](media/system-overview.md)) and an explainer video
-([`media/system-overview.mp4`](media/system-overview.mp4)). The overview infographic is
+([`media/system-overview.md`](media/system-overview.md)), an explainer video
+([`media/system-overview.mp4`](media/system-overview.mp4)), and a slide deck
+([`media/bulletproof-docs-portal-deck.pdf`](media/bulletproof-docs-portal-deck.pdf)).
+The overview infographic is
 [`docs/media/infographic.png`](docs/media/infographic.png).
 
 ## License
