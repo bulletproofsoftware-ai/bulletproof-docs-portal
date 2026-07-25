@@ -14,6 +14,7 @@ Configure via env:
 
 from __future__ import annotations
 
+import hmac
 import io
 import os
 import re
@@ -21,8 +22,8 @@ import zipfile
 from pathlib import Path
 
 import markdown as md_lib
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, Response, RedirectResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse, JSONResponse, Response, RedirectResponse
 from weasyprint import HTML
 
 DOCS_ROOT = Path(os.environ.get("DOCS_ROOT", str(Path.home() / "Code"))).resolve()
@@ -38,6 +39,44 @@ INCLUDE_PATTERNS = [
 EXCLUDE_DIRS = {".git", "node_modules", ".venv", "venv", "__pycache__", ".pytest_cache", "dist", "build"}
 
 app = FastAPI(title="Docs Portal", description="Browse and PDF-export project documentation")
+
+# Shared-secret gate.
+#
+# Every route below serves file contents from DOCS_ROOT, which defaults to the
+# operator's entire ~/Code directory. Without this the portal browsed, and let
+# anyone download or zip, whatever happened to be under that root.
+#
+# Send the token as `Authorization: Bearer <token>` or `X-Docs-Token`.
+# Unset token => the service refuses everything (fail closed) rather than
+# serving the filesystem to anyone who can reach the port.
+DOCS_PORTAL_TOKEN = os.environ.get("DOCS_PORTAL_TOKEN", "")
+_PUBLIC_PATHS = {"/healthz"}
+
+
+@app.middleware("http")
+async def require_token(request: Request, call_next):
+    if request.url.path in _PUBLIC_PATHS:
+        return await call_next(request)
+
+    if not DOCS_PORTAL_TOKEN:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "detail": "DOCS_PORTAL_TOKEN is not set; the portal refuses "
+                          "requests until it is configured."
+            },
+        )
+
+    header = request.headers.get("authorization", "")
+    presented = (
+        header[7:] if header.lower().startswith("bearer ") else ""
+    ) or request.headers.get("x-docs-token", "")
+
+    # Constant-time compare so the token cannot be recovered from timing.
+    if not presented or not hmac.compare_digest(presented, DOCS_PORTAL_TOKEN):
+        return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+
+    return await call_next(request)
 
 
 def _safe_path(project: str, doc_path: str) -> Path:
