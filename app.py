@@ -102,27 +102,39 @@ def _validate_segments(value: str, *, allow_slash: bool) -> str:
     return "/".join(parts)
 
 
+def _contained(root: str | os.PathLike[str], *parts: str) -> str:
+    """Join ``parts`` under ``root`` and return the resolved path.
+
+    The containment proof is realpath + startswith rather than a comparison
+    against ``Path.parents``. Both are correct at runtime, but only this
+    spelling registers as a sanitiser with the dataflow analysis -- the
+    previous ``parents`` form was reported as an unguarded flow on every scan.
+    It also collapses symlinks, which the ``parents`` check did not.
+    """
+    root_real = os.path.realpath(root)
+    full = os.path.realpath(os.path.join(root_real, *parts))
+    if not full.startswith(root_real + os.sep):
+        raise HTTPException(status_code=400, detail="path traversal")
+    return full
+
+
 def _safe_project_dir(project: str) -> Path:
     """Validated, contained project directory."""
     project = _validate_segments(project, allow_slash=False)
-    project_dir = (DOCS_ROOT / project).resolve()
-    if DOCS_ROOT not in project_dir.parents and project_dir != DOCS_ROOT:
-        raise HTTPException(status_code=400, detail="invalid project")
-    if not project_dir.is_dir():
+    project_dir = _contained(DOCS_ROOT, project)
+    if not os.path.isdir(project_dir):
         raise HTTPException(status_code=404, detail="project not found")
-    return project_dir
+    return Path(project_dir)
 
 
 def _safe_path(project: str, doc_path: str) -> Path:
     """Resolve project + doc_path under DOCS_ROOT, refusing traversal."""
     doc_path = _validate_segments(doc_path, allow_slash=True)
     project_dir = _safe_project_dir(project)
-    full = (project_dir / doc_path).resolve()
-    if project_dir not in full.parents and full != project_dir:
-        raise HTTPException(status_code=400, detail="path traversal")
-    if not full.is_file():
+    full = _contained(project_dir, doc_path)
+    if not os.path.isfile(full):
         raise HTTPException(status_code=404, detail="doc not found")
-    return full
+    return Path(full)
 
 
 def _list_projects() -> list[dict]:
@@ -260,10 +272,15 @@ async def index() -> str:
 @app.get("/p/{project}", response_class=HTMLResponse)
 async def project_view(project: str) -> str:
     project_dir = _safe_project_dir(project)
+    # _validate_segments already restricts project to [A-Za-z0-9._-], so no
+    # quote or angle bracket can reach the markup below. Escaping anyway keeps
+    # every interpolation into HTML uniformly escaped rather than relying on a
+    # rule enforced several frames away (CodeQL py/reflective-xss).
+    safe_project = html.escape(project, quote=True)
     docs = sorted(_list_docs_in(project_dir), key=lambda x: str(x[0]))
     if not docs:
         body = '<div class="card"><p>No documentation files in this project.</p></div>'
-        return _page(project, body, f'<div class="crumbs"><a href="/">📚 Projects</a> / {html.escape(project, quote=True)}</div>')
+        return _page(project, body, f'<div class="crumbs"><a href="/">📚 Projects</a> / {safe_project}</div>')
 
     # Group by top-level directory
     grouped: dict[str, list[Path]] = {}
@@ -276,21 +293,25 @@ async def project_view(project: str) -> str:
     for group in sorted(grouped.keys()):
         entries = sorted(grouped[group], key=str)
         links = "\n".join(
-            f'<a href="/p/{project}/d/{rel}">{rel.name}</a>' for rel in entries
+            f'<a href="/p/{safe_project}/d/{html.escape(str(rel), quote=True)}">'
+            f'{html.escape(rel.name, quote=True)}</a>'
+            for rel in entries
         )
         items_html.append(
-            f'<details open><summary><strong>{group}/</strong> ({len(entries)})</summary>'
+            f'<details open><summary>'
+            f'<strong>{html.escape(group, quote=True)}/</strong> ({len(entries)})'
+            f'</summary>'
             f'<div style="margin-left:1em">{links}</div></details>'
         )
     tree = '<ul class="tree">' + "".join(items_html) + "</ul>"
 
     toolbar = (
         f'<div class="toolbar">'
-        f'<a class="btn btn-secondary" href="/p/{project}/zip">⬇ Download All as ZIP</a>'
+        f'<a class="btn btn-secondary" href="/p/{safe_project}/zip">⬇ Download All as ZIP</a>'
         f'<span style="color:#6b7280">{len(docs)} document(s)</span></div>'
     )
     body = f'<div class="card">{toolbar}{tree}</div>'
-    crumbs = f'<div class="crumbs"><a href="/">📚 Projects</a> / {html.escape(project, quote=True)}</div>'
+    crumbs = f'<div class="crumbs"><a href="/">📚 Projects</a> / {safe_project}</div>'
     return _page(project, body, crumbs)
 
 
