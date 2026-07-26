@@ -15,6 +15,7 @@ Configure via env:
 from __future__ import annotations
 
 import hmac
+import html
 import io
 import os
 import re
@@ -269,16 +270,21 @@ async def doc_view(project: str, doc_path: str) -> str:
         rendered = _render_markdown(text)
     else:  # .html
         rendered = text
+    # project and doc_path come from the URL and are interpolated into HTML,
+    # so they must be escaped: a path containing a quote or angle bracket
+    # otherwise breaks out of the attribute and injects markup into the page.
+    e_project = html.escape(project, quote=True)
+    e_doc_path = html.escape(doc_path, quote=True)
     toolbar = (
         f'<div class="toolbar">'
-        f'<a class="btn" href="/p/{project}/pdf/{doc_path}">⬇ Download PDF</a>'
-        f'<a class="btn btn-secondary" href="/p/{project}/raw/{doc_path}">View Raw</a>'
+        f'<a class="btn" href="/p/{e_project}/pdf/{e_doc_path}">⬇ Download PDF</a>'
+        f'<a class="btn btn-secondary" href="/p/{e_project}/raw/{e_doc_path}">View Raw</a>'
         f'</div>'
     )
     body = f'<div class="card">{toolbar}<div class="content">{rendered}</div></div>'
     crumbs = (
         f'<div class="crumbs"><a href="/">📚 Projects</a> / '
-        f'<a href="/p/{project}">{project}</a> / {doc_path}</div>'
+        f'<a href="/p/{e_project}">{e_project}</a> / {e_doc_path}</div>'
     )
     return _page(full.name, body, crumbs)
 
@@ -324,7 +330,15 @@ async def project_zip(project: str) -> Response:
     docs = list(_list_docs_in(project_dir))
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        resolved_project = project_dir.resolve()
         for rel, abs_path in docs:
+            # Skip anything that resolves outside the project: a symlinked doc
+            # would otherwise be followed and its target packaged into the zip.
+            try:
+                if resolved_project not in Path(abs_path).resolve().parents:
+                    continue
+            except OSError:
+                continue
             zf.write(abs_path, arcname=f"{project}/{rel}")
     buf.seek(0)
     safe_name = re.sub(r"[^\w.-]+", "_", project) + "-docs.zip"
