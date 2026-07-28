@@ -62,13 +62,13 @@ This installs the five direct dependencies (and their transitive tree):
 
 | Package | Version | Role |
 |---------|---------|------|
-| `fastapi` | 0.115.0 | Web framework / routing |
+| `fastapi` | 0.140.7 | Web framework / routing |
 | `uvicorn[standard]` | 0.32.0 | ASGI server that runs the app |
 | `markdown` | 3.8.1 | Markdown → HTML rendering |
-| `pygments` | 2.18.0 | Syntax highlighting for fenced code blocks |
-| `weasyprint` | 68.0 | HTML → PDF conversion |
+| `pygments` | 2.20.0 | Syntax highlighting for fenced code blocks |
+| `weasyprint` | 69.0 | HTML → PDF conversion |
 
-> WeasyPrint is pinned to **68.0** or newer: versions below 68.0 are affected by
+> WeasyPrint is pinned to **69.0** or newer: versions below 69.0 are affected by
 > [CVE-2025-68616](https://nvd.nist.gov/vuln/detail/CVE-2025-68616) (an SSRF protection bypass). See the
 > [Scan Report](scan/scan-report.md) for details.
 
